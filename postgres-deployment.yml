@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  namespace: tristan
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: twoge-postgres
+  template:
+    metadata:
+      labels:
+        app: twoge-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:latest
+          volumeMounts:
+            - name: db-storage
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "100Mi"
+            limits:
+              cpu: "200m"
+              memory: "200Mi"
+          ports: 
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: twoge-secret
+                  key: postgres-username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: twoge-secret
+                  key: postgres-password
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: database-name
+          startupProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            exec:
+              command:
+                - pg_isready
+                - -q 
+                - -d 
+                - twoge 
+                - -U 
+                - admin
+      volumes: 
+        - name: db-storage
+          persistentVolumeClaim:
+            claimName: db-pvc

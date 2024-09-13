@@ -1,0 +1,10 @@
+apiVersion: v1 
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: tristan
+data:
+  database-port: "5432"
+  database-host: postgres-service
+  database-name: twoge
+  database-type: postgres

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-deployment
+  namespace: tristan
+spec:
+  selector:
+    matchLabels:
+      app: twoge
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: twoge
+    spec:
+      containers:
+        - name: twoge-container
+          image: zimmermantr/twoge_kube
+          ports:
+            - containerPort: 80
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: database-name
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: twoge-secret
+                  key: postgres-username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: twoge-secret
+                  key: postgres-password
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: database-port
+            - name: DATABASE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: database-host
+            - name: DATABASE_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: database-type
+            - name: SQLALCHEMY_DATABASE_URI 
+              value: "$(DATABASE_TYPE)://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(DATABASE_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)"
+          startupProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
