@@ -17,7 +17,7 @@ spec:
         - name: postgres
           image: postgres:latest
           volumeMounts:
-            - name: db-storage
+            - name: tristan-storage
               mountPath: /var/lib/postgresql/data
           resources:
             requests:
@@ -44,21 +44,32 @@ spec:
                 configMapKeyRef:
                   name: postgres-config
                   key: database-name
+            - name: PGDATA  # This will tell PostgreSQL to use the subdirectory
+              value: /var/lib/postgresql/data
           startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - |
+                  pg_isready -q -d $POSTGRES_DB -U $POSTGRES_USER
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
+          livenessProbe:
             exec:
               command:
-                - pg_isready
-                - -q 
-                - -d 
-                - twoge 
-                - -U 
-                - admin
+                - sh
+                - -c
+                - |
+                  pg_isready -q -d $POSTGRES_DB -U $POSTGRES_USER
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
       volumes: 
-        - name: db-storage
+        - name: tristan-storage
           persistentVolumeClaim:
             claimName: db-pvc

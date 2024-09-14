@@ -4,9 +4,9 @@ metadata:
   name: db-pvc
   namespace: tristan
 spec:
-  storageClassName: db-storage
+  storageClassName: tristan-storage
   resources:
     requests:
-      storage: 2Gi
+      storage: 1Gi
   accessModes:
     - ReadWriteOnce
