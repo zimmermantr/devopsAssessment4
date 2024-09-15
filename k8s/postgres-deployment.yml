@@ -18,7 +18,7 @@ spec:
           image: postgres:latest
           volumeMounts:
             - name: tristan-storage
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql
           resources:
             requests:
               cpu: "100m"
@@ -45,7 +45,7 @@ spec:
                   name: postgres-config
                   key: database-name
             - name: PGDATA  # This will tell PostgreSQL to use the subdirectory
-              value: /var/lib/postgresql/data
+              value: /var/lib/postgresql/pgdata
           startupProbe:
             exec:
               command:
