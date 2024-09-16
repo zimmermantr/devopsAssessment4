@@ -1,65 +1,61 @@
-name: Deploy Twoge app to EKS using GA CICD using Dockerhub
-
-on:
+name: twoge-cicd 
+on: 
   push:
     branches:
       - main
-
 env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  AWS_REGION: 'us-east-1'
-  K8S_NAMESPACE: 'default'
-  EKS_CLUSTER_NAME: 'class-eks-cluster'
+  AWS_REGION: ${{ secrets.AWS_REGION}}
 
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: checkout repo 
+        uses: actions/checkout@v2 
         with:
           ref: main
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      - name: set up docker buildx
+        uses: docker/setup-buildx-action@v1 
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
+      - name: login to docker hub
+        uses: docker/login-action@v1 
         with:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
+      - name: build and push docker image
+        uses: docker/build-push-action@v2 
         with:
           context: .
           push: true
-          tags: ${{ env.DOCKER_USERNAME }}/2048:latest
+          tags: ${{ env.DOCKER_USERNAME }}/twoge_kube:latest
 
   eks_deploy:
     needs: build_and_push
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: checkout repo 
         uses: actions/checkout@v2
         with:
           ref: main
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1 
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-    
-      - name: Configure kubectl
-        uses: azure/k8s-set-context@v1
-        with:
-          kubeconfig: ${{ secrets.KUBECONFIG }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy to EKS
+      - name: Update kubeconfig for EKS
         run: |
-          kubectl apply -f k8s -n tristan
+          aws eks update-kubeconfig --name class-eks-cluster --kubeconfig ./kubeconfig.yml
+          echo "KUBECONFIG=$(pwd)/kubeconfig.yml" >> $GITHUB_ENV
+
+      - name: deploy to eks 
+        run: |
+          kubectl apply -f k8s/ -n tristan
