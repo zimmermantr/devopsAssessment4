@@ -9,14 +9,14 @@ The purpose of this assessment was to deepen my understanding of Kubernetes by d
 ## Milestones
 
 ### 1. Docker Image Creation
-- **Dockerizing Twoge**: 
+- **Dockerizing Twoge**:
   - I began by writing a Dockerfile for the Twoge application, ensuring it included all necessary dependencies and configurations for the Python Flask environment.
   - Built the Docker image and tested it using Docker Compose to ensure it worked as expected.
 
 ### 2. Deployment on Minikube
-- **YAML Configuration**:
-  - Created deployment and service YAML files to deploy Twoge on Minikube.
-  - Created deployment and service YAML files to deploy a postgres database.
+- **YML Configuration**:
+  - Created deployment and service YML files to deploy Twoge on Minikube.
+  - Created deployment and service YML files to deploy a Postgres database.
   - Configured the app service to expose the application within the Minikube cluster.
 
 ### 3. Database Configuration
@@ -42,17 +42,52 @@ The purpose of this assessment was to deepen my understanding of Kubernetes by d
 - **Storage Configuration**:
   - Created a Persistent Volume Claim (PVC) using a storage class to ensure data persistence for the application.
 
-### 8. CI/CD (Optional)
+### 8. CI/CD
 - **GitHub Actions Setup**:
   - Set up a CI/CD pipeline using GitHub Actions for automating Docker image building and deployment to EKS.
   - Ensured that the pipeline utilized the appropriate namespace and Docker Hub credentials.
 
 ## Getting Started
 
+### Prerequisites
+
+Before starting, ensure you have the following tools installed:
+
+- **Docker**: To build and push Docker images.
+  - Installation instructions can be found [here](https://docs.docker.com/get-docker/).
+
+- **Minikube**: For local Kubernetes deployment.
+  - Installation instructions can be found [here](https://minikube.sigs.k8s.io/docs/start/).
+
+- **kubectl**: The Kubernetes command-line tool.
+  - Installation instructions can be found [here](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
+
+- **AWS CLI**: To manage AWS services and interact with EKS.
+  - Installation instructions can be found [here](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html).
+
+### Setting Up GitHub Secrets
+
+To securely manage your AWS credentials and Docker Hub credentials, create the following GitHub secrets in your repository:
+
+1. **AWS Credentials**:
+   - `AWS_ACCESS_KEY_ID`: Your AWS Access Key ID.
+   - `AWS_SECRET_ACCESS_KEY`: Your AWS Secret Access Key.
+   - `AWS_REGION`: Your AWS region (e.g., `us-west-2`).
+
+2. **Docker Hub Credentials**:
+   - `DOCKER_USERNAME`: Your Docker Hub username.
+   - `DOCKER_PASSWORD`: Your Docker Hub password.
+
+To add secrets in GitHub:
+
+1. Navigate to your repository on GitHub.
+2. Go to `Settings` > `Secrets` > `Actions`.
+3. Click `New repository secret` and add the required secrets.
+
 ### 1. Clone the Repository
-Clone the repository to your local machine:
+Fork the repository and clone it to your local machine:
 ```bash
-git clone https://github.com/chandradeoarya/twoge.git
+git clone <your-forked-repo-url>
 cd twoge
 ```
 
@@ -63,19 +98,32 @@ docker build -t twoge-kube:latest .
 ```
 
 ### 3. Deploy on Minikube
-- Apply the YAML files for deployment and service:
+- Create a secret.yml file:
 ```bash
-kubectl apply -f namespace.yaml
-kubectl apply -f flask-deployment.yaml
-kubectl apply -f flask-service.yaml
-kubectl apply -f configmap.yaml
-kubectl apply -f secrets.yaml
-kubectl apply -f postgres-deployment.yaml
-kubectl apply -f postgres-service.yaml
+echo "apiVersion: v1
+kind: Secret
+metadata:
+  name: twoge-secret
+  namespace: tristan
+type: Opaque
+data:
+  postgres-username: dXNlcjE= # user1 base64 encoded
+  postgres-password: cGFzc3dvcmQ= # password base64 encoded" > k8s/secrets.yml
+```
+
+- Apply the YML files for deployment and service:
+```bash
+kubectl apply -f namespace.yml
+kubectl apply -f flask-deployment.yml
+kubectl apply -f flask-service.yml
+kubectl apply -f configmap.yml
+kubectl apply -f secrets.yml
+kubectl apply -f postgres-deployment.yml
+kubectl apply -f postgres-service.yml
 ```
 - This can also be ran with the following:
 ```bash
-kubectl apply -f namespace.yaml
+kubectl apply -f namespace.yml
 kubectl apply -f .
 ```
 - Once the pods are running you can start the app with:
@@ -83,27 +131,33 @@ kubectl apply -f .
 minikube service flask-service
 ```
 
-### 4. Deploy on AWS EKS
-- Update the service type in `flask-service.yaml` to `LoadBalancer`.
-- Apply the YAML files to the EKS cluster:
-```bash
-kubectl apply -f namespace.yaml
-kubectl apply -f flask-deployment.yaml
-kubectl apply -f flask-service.yaml
-kubectl apply -f configmap.yaml
-kubectl apply -f secrets.yaml
-kubectl apply -f postgres-deployment.yaml
-kubectl apply -f postgres-service.yaml
-kubectl apply -f storageclass.yaml
-kubectl apply -f pvc.yaml
-```
+### Switching from Minikube to AWS EKS
 
-### 5. CI/CD Setup (Optional)
-- Configure GitHub Actions for automated builds and deployments by updating the workflow file in `.github/workflows/`.
+1. **Update Your Kubernetes Configuration**:
+   - When switching from Minikube to AWS EKS, update your kubeconfig file to point to the EKS cluster. Run:
+     ```bash
+     aws eks update-kubeconfig --name <your-eks-cluster-name> --region <your-aws-region>
+     ```
 
-## Deliverables
+2. **Update Kubernetes Files**:
+   - In the `flask-service.yml` file, change the service type from `NodePort` (used in Minikube) to `LoadBalancer` for EKS to allow external access.
+   - In the `storageclass.yml` file, comment out the code needed for minikube and uncomment out the code needed for EKS.
 
-- **Dockerfile**: Used to create the Docker image of the Twoge application.
-- **YAML Files**: Includes configurations for deployment, services, ConfigMap, Secrets, Namespace, and probes.
-- **Architecture Diagram**: Outlines the deployment architecture.
-- **Screenshots/Screen Recordings**: Demonstrate successful deployments on both Minikube and AWS EKS.
+3. **Apply the YML Files to EKS**:
+   - Use `kubectl` to apply your configurations to the EKS cluster:
+     ```bash
+     kubectl apply -f k8s/namespace.yml
+     kubectl apply -f k8s/ -n <namespace>
+     ```
+
+4. **Verify Deployment**:
+   - Check the status of your pods and services on EKS:
+     ```bash
+     kubectl get pods -n <namespace>
+     kubectl get services -n <namespace>
+     ```
+
+### 5. CI/CD
+- Try making a small change to the flask-deployment.yml and pushing it up to github. For example, change the number replicas. 
+- After pushing up the change, go to the actions tab in your repo and verify the jobs finsihed successfuly.
+- You should now also see the number of flask-deployment pods changed and you should have a new docker image on dockerhub.

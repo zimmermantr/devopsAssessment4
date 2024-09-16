@@ -4,10 +4,13 @@ metadata:
   name: flask-service
   namespace: tristan
 spec:
-  type: LoadBalancer
+  selector:
+    app: twoge # This is the label that the service will use to select the pods it will route traffic to
+  # use for Minikube
+  # type: NodePort # This will expose the service on a static port on each node
+  # use for EKS
+  type: LoadBalancer # This will expose the service to the internet
   ports:
     - protocol: TCP
       port: 80
       targetPort: 80
-  selector:
-    app: twoge

@@ -4,9 +4,9 @@ metadata:
   name: postgres-service
   namespace: tristan
 spec:
-  selector:
+  selector: # This is the label that the service will use to select the pods it will route traffic to
     app: twoge-postgres
-  type: ClusterIP
+  type: ClusterIP # This will expose the service on an internal IP in the cluster
   ports:
   - protocol: TCP
     port: 5432

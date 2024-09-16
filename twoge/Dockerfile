@@ -11,4 +11,3 @@ COPY . /app
 EXPOSE 80
 
 CMD ["flask", "run", "--host=0.0.0.0", "--port=80"]
-# CMD ["gunicorn", "--bind", "0.0.0.0:80", "--config", "gunicorn_config.py", "app:app"]

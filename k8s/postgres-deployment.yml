@@ -6,12 +6,12 @@ metadata:
 spec:
   replicas: 1
   selector:
-    matchLabels:
+    matchLabels: # This is the label that the deployment will use to select the pods it manages
       app: twoge-postgres
-  template:
+  template: # This is the pod template that the deployment will use to create new pods
     metadata:
       labels:
-        app: twoge-postgres
+        app: twoge-postgres # This is the label that the pod will use to identify itself
     spec:
       containers:
         - name: postgres
