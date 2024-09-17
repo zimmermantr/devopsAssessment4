@@ -1,15 +1,15 @@
 # For minikube
-# apiVersion: storage.k8s.io/v1
-# kind: StorageClass
-# metadata:
-#   name: tristan-storage
-# provisioner: k8s.io/minikube-hostpath
-
-# For AWS EKS
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: tristan-storage
-provisioner: ebs.csi.aws.com
-volumeBindingMode: WaitForFirstConsumer
-allowVolumeExpansion: true
+provisioner: k8s.io/minikube-hostpath
+
+# For AWS EKS
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: tristan-storage
+# provisioner: ebs.csi.aws.com
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true

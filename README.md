@@ -70,9 +70,9 @@ Before starting, ensure you have the following tools installed:
 To securely manage your AWS credentials and Docker Hub credentials, create the following GitHub secrets in your repository:
 
 1. **AWS Credentials**:
-   - `AWS_ACCESS_KEY_ID`: Your AWS Access Key ID.
-   - `AWS_SECRET_ACCESS_KEY`: Your AWS Secret Access Key.
-   - `AWS_REGION`: Your AWS region (e.g., `us-west-2`).
+    - `AWS_ACCESS_KEY_ID`: Your AWS Access Key ID.
+    - `AWS_SECRET_ACCESS_KEY`: Your AWS Secret Access Key.
+    - `AWS_REGION`: Your AWS region (e.g., `us-west-2`).
 
 2. **Docker Hub Credentials**:
    - `DOCKER_USERNAME`: Your Docker Hub username.
@@ -94,10 +94,15 @@ cd twoge
 ### 2. Build Docker Image
 Build the Docker image for the Twoge application:
 ```bash
-docker build -t twoge-kube:latest .
+docker build --platform linux/amd64,linux/arm64 -t twoge-kube:latest . 
 ```
 
 ### 3. Deploy on Minikube
+- Start Minikube:
+```bash
+minikube start
+```
+
 - Create a secret.yml file:
 ```bash
 echo "apiVersion: v1
@@ -112,24 +117,24 @@ data:
 ```
 
 - Apply the YML files for deployment and service:
-```bash
-kubectl apply -f namespace.yml
-kubectl apply -f flask-deployment.yml
-kubectl apply -f flask-service.yml
-kubectl apply -f configmap.yml
-kubectl apply -f secrets.yml
-kubectl apply -f postgres-deployment.yml
-kubectl apply -f postgres-service.yml
-```
+  ```bash
+  kubectl apply -f namespace.yml
+  kubectl apply -f flask-deployment.yml
+  kubectl apply -f flask-service.yml
+  kubectl apply -f configmap.yml
+  kubectl apply -f secrets.yml
+  kubectl apply -f postgres-deployment.yml
+  kubectl apply -f postgres-service.yml
+  ```
 - This can also be ran with the following:
-```bash
-kubectl apply -f namespace.yml
-kubectl apply -f .
-```
+  ```bash
+  kubectl apply -f namespace.yml
+  kubectl apply -f .
+  ```
 - Once the pods are running you can start the app with:
-```bash
-minikube service flask-service
-```
+  ```bash
+  minikube service flask-service
+  ```
 
 ### Switching from Minikube to AWS EKS
 
@@ -142,7 +147,6 @@ minikube service flask-service
 2. **Update Kubernetes Files**
   - In the `flask-service.yml` file, change the service type from `NodePort` (used in Minikube) to `LoadBalancer` for EKS to allow external access.
   - In the `storageclass.yml` file, comment out the code needed for minikube and uncomment out the code needed for EKS.
-
 
 3. **Apply the YAML Files to EKS**
   - Use `kubectl` to apply your configurations to the EKS cluster:
@@ -157,6 +161,10 @@ minikube service flask-service
     kubectl get pods -n <namespace>
     kubectl get services -n <namespace>
     ```
+  - Or:
+    ```bash
+    kubectl get all -n <namespace>
+    ``` 
 
 ### Switching from AWS EKS to Minikube
 
@@ -189,8 +197,12 @@ minikube service flask-service
     kubectl get pods -n <namespace>
     kubectl get services -n <namespace>
     ```
+  - Or:
+    ```bash
+    kubectl get all -n <namespace>
+    ```
 
 ### 5. CI/CD
-- Try making a small change to the flask-deployment.yml and pushing it up to github. For example, change the number replicas. 
-- After pushing up the change, go to the actions tab in your repo and verify the jobs finsihed successfuly.
-- You should now also see the number of flask-deployment pods changed and you should have a new docker image on dockerhub.
+  - Try making a small change to the flask-deployment.yml and pushing it up to github. For example, change the number replicas. 
+  - After pushing up the change, go to the actions tab in your repo and verify the jobs finsihed successfuly.
+  - You should now also see the number of flask-deployment pods changed and you should have a new docker image on dockerhub.
