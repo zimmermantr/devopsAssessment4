@@ -133,29 +133,62 @@ minikube service flask-service
 
 ### Switching from Minikube to AWS EKS
 
-1. **Update Your Kubernetes Configuration**:
-   - When switching from Minikube to AWS EKS, update your kubeconfig file to point to the EKS cluster. Run:
-     ```bash
-     aws eks update-kubeconfig --name <your-eks-cluster-name> --region <your-aws-region>
-     ```
+1. **Update Your Kubernetes Configuration**
+  - Update your kubeconfig file to point to the EKS cluster:
+    ```bash
+    aws eks update-kubeconfig --name <your-eks-cluster-name> --region <your-aws-region>
+    ```
 
-2. **Update Kubernetes Files**:
-   - In the `flask-service.yml` file, change the service type from `NodePort` (used in Minikube) to `LoadBalancer` for EKS to allow external access.
-   - In the `storageclass.yml` file, comment out the code needed for minikube and uncomment out the code needed for EKS.
+2. **Update Kubernetes Files**
+  - In the `flask-service.yml` file, change the service type from `NodePort` (used in Minikube) to `LoadBalancer` for EKS to allow external access.
+  - In the `storageclass.yml` file, comment out the code needed for minikube and uncomment out the code needed for EKS.
 
-3. **Apply the YML Files to EKS**:
-   - Use `kubectl` to apply your configurations to the EKS cluster:
-     ```bash
-     kubectl apply -f k8s/namespace.yml
-     kubectl apply -f k8s/ -n <namespace>
-     ```
 
-4. **Verify Deployment**:
-   - Check the status of your pods and services on EKS:
-     ```bash
-     kubectl get pods -n <namespace>
-     kubectl get services -n <namespace>
-     ```
+3. **Apply the YAML Files to EKS**
+  - Use `kubectl` to apply your configurations to the EKS cluster:
+    ```bash
+    kubectl apply -f k8s/namespace.yml
+    kubectl apply -f k8s/ -n <namespace>
+    ```
+
+4. **Verify Deployment**
+  - Check the status of your pods and services on EKS:
+    ```bash
+    kubectl get pods -n <namespace>
+    kubectl get services -n <namespace>
+    ```
+
+### Switching from AWS EKS to Minikube
+
+1. **Update Kubernetes Context**
+  - Update your kubectl Context to use Minikube:
+    ```bash
+    kubectl config use-context minikube
+    ```
+
+2. **Verify the Current Context**
+  - Check to see if it switched correctly
+    ```bash
+    kubectl config current-context
+    ```
+
+3. **Update Kubernetes Files**
+  - In the flask-service.yml file, change the service type from 'LoadBalancer' back to 'NodePort'.
+  - In the storageclass.yml file, comment out the code needed for EKS and uncomment out the code needed for Minikube.
+
+4. **Apply the YAML to Minikube**
+  - Reapply configurations to Minikube:
+    ```bash
+    kubectl apply -f k8s/namespace.yml
+    kubectl apply -f k8s/ -n <namespace>
+    ```
+
+5. **Verify Deployment**
+  - Check the status of your pods and services on Minikube:
+    ```bash
+    kubectl get pods -n <namespace>
+    kubectl get services -n <namespace>
+    ```
 
 ### 5. CI/CD
 - Try making a small change to the flask-deployment.yml and pushing it up to github. For example, change the number replicas. 
